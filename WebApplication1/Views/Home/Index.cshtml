@@ -1,31 +1,106 @@
 ﻿@{
     ViewBag.Title = "Home Page";
 }
+@using System.Collections.Concurrent
+@using WebApplication1.Models
+@model WebApplication1.Models.TradeLogViewModel
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.currency').blur(function () {
+            $(this).formatCurrency();
+        });
+
+        function getFormattedDate(date) {
+            var year = date.getFullYear();
+            var month = (1 + date.getMonth()).toString();
+            month = month.length > 1 ? month : '0' + month;
+            var day = date.getDate().toString();
+            day = day.length > 1 ? day : '0' + day;
+
+            return day + '/' + month + '/' + year + ' ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+        }
+
+        $("#created-datetime").val(getFormattedDate(new Date()));
+
+        $('#exchange-interest').blur(function () {
+            var fromAmt = $('#from-currency-amount').val().replace('$', '').replace(new RegExp(',', 'g'), '').replace('.', '');
+            var interest = $('#exchange-interest').val();
+
+            var toAmount = parseFloat(fromAmt) * parseFloat(interest);
+            $('#to-currency-amount').val(toAmount).formatCurrency();
+        });
+    });
+</script>
 
 <div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="http://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+    <h2>Man hinh giao dich</h2>
 </div>
 
-<div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
+@using (Html.BeginForm("Create", "Home", FormMethod.Post, new { data_toggle="validator", role = "form" }))
+{
+    <div class="form-group row">
+        <label for="customer-name" class="col-xs-2 col-form-label">Khach hang</label>
+        <div class="col-xs-10">
+            @Html.TextBox("CustomerName", null, new {@class = "form-control", @placeholder = "Ten khach hang", id = "customer-name", @required = "required"})
+        </div>
     </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
+    <div class="form-group row">
+        <label for="customer-telephone" class="col-xs-2 col-form-label">Dien thoai</label>
+        <div class="col-xs-10">
+            @Html.TextBox("Phone", null, new {@class = "form-control", id = "customer-telephone", @required = "required" })
+        </div>
     </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
+    <div class="form-group row">
+        <label for="from-currency" class="col-xs-2 col-form-label">Tu Ngoai Te</label>
+        <div class="col-xs-10">
+            @Html.DropDownListFor(x => x.FromCurrency, new SelectList(Enum.GetValues(typeof (Currency))), "Chon ngoai te", new {@class = "form-control", id = "from-currency"})
+
+        </div>
     </div>
-</div>
+    <div class="form-group row">
+        <label for="to-currency" class="col-xs-2 col-form-label">Den Ngoai Te</label>
+        <div class="col-xs-10">
+            @Html.DropDownListFor(x => x.ToCurrency, new SelectList(Enum.GetValues(typeof (Currency))), "Chon ngoai te", new {@class = "form-control", id = "to-currency"})
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="from-currency-amount" class="col-xs-2 col-form-label">So tien</label>
+        <div class="col-xs-10">
+            @Html.TextBox("FromAmount", null, new {@class = "form-control currency", @placeholder = "So Tien", id = "from-currency-amount", @required = "required" })
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="exchange-interest" class="col-xs-2 col-form-label">Ty gia</label>
+        <div class="col-xs-10">
+            @Html.TextBox("ChangeRate", null, new {@class = "form-control", id = "exchange-interest", @required = "required" })
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="to-currency-amount" class="col-xs-2 col-form-label">Thanh tien</label>
+        <div class="col-xs-10">
+            @Html.TextBox("ToAmount", null, new {@class = "form-control currency", @placeholder = "0.00", id = "to-currency-amount", @disabled = "disabled"})
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="created-datetime" class="col-xs-2 col-form-label">Ngay gio giao dich</label>
+        <div class="col-xs-10">
+            @Html.TextBoxFor(x => x.InsertedDate, null, new {@class = "form-control", id = "created-datetime", @disabled = "disabled"})
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="user-name" class="col-xs-2 col-form-label">Nhan vien</label>
+        <div class="col-xs-10">
+            @Html.TextBoxFor(x => x.UserName, null, new {@class = "form-control", @placeholder = "Ten nhan vien", id = "user-name", @required = "required" })
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="transaction-description" class="col-xs-2 col-form-label">Ghi chu</label>
+        <div class="col-xs-10">
+            @Html.TextAreaFor(x => x.Description, new {@class = "form-control", id = "transaction-description", @rows = "3"})
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+}
+
+

@@ -7,6 +7,11 @@
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
 
+    <script type="text/javascript" src="/Scripts/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="http://www.bendewey.com/code/formatCurrency/jquery.formatCurrency-1.4.0.js"></script>
+    <script type="text/javascript" src="http://www.bendewey.com/code/formatCurrency/i18n/jquery.formatCurrency.all.js"></script>
+
+    @*<script type="text/javascript" src="/Scripts/jquery.price_format.js"></script>*@
 </head>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -37,8 +42,9 @@
         </footer>
     </div>
 
-    @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @RenderSection("scripts", required: false)
+
+    
 </body>
 </html>
