@@ -3,11 +3,12 @@
 }
 @using System.Collections.Concurrent
 @using WebApplication1.Models
-@model WebApplication1.Models.TradeLogViewModel
+@model TransactionPageViewModel
 
 <script type="text/javascript">
-    $(document).ready(function () {
+    $(document).ready(function() {
         $('.currency').blur(function () {
+            $("#from-currency-amount-hidden").val($(this).val());
             $(this).formatCurrency();
         });
 
@@ -21,15 +22,36 @@
             return day + '/' + month + '/' + year + ' ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
         }
 
-        $("#created-datetime").val(getFormattedDate(new Date()));
+        var now = new Date();
+        $("#created-datetime").val(getFormattedDate(now));
+        $('#created-datetime-hidden').val(getFormattedDate(now));
 
-        $('#exchange-interest').blur(function () {
-            var fromAmt = $('#from-currency-amount').val().replace('$', '').replace(new RegExp(',', 'g'), '').replace('.', '');
+        $('#exchange-interest').blur(function() {
+            var fromAmt = $('#from-currency-amount').val().replace('$', '').replace(new RegExp(',', 'g'), '');
             var interest = $('#exchange-interest').val();
 
             var toAmount = parseFloat(fromAmt) * parseFloat(interest);
             $('#to-currency-amount').val(toAmount).formatCurrency();
+            $('#to-currency-amount-hidden').val(toAmount);
         });
+
+        jQuery.validator.addMethod("from-currency", function(value, ele) {
+            if ($("from-currency").val() === '0') {
+                return false;
+            }
+
+            return true;
+        });
+
+        $('#create-form').validate({
+            rules: {
+                form_currency: "required"
+            }
+        });
+    });
+
+    jQuery.extend(jQuery.validator.messages, {
+        required: "Xin vui lòng nhập dữ liệu."
     });
 </script>
 
@@ -37,70 +59,101 @@
     <h2>Man hinh giao dich</h2>
 </div>
 
-@using (Html.BeginForm("Create", "Home", FormMethod.Post, new { data_toggle="validator", role = "form" }))
-{
-    <div class="form-group row">
-        <label for="customer-name" class="col-xs-2 col-form-label">Khach hang</label>
-        <div class="col-xs-10">
-            @Html.TextBox("CustomerName", null, new {@class = "form-control", @placeholder = "Ten khach hang", id = "customer-name", @required = "required"})
-        </div>
+<div class="form-group row">
+    <div class="col-xs-10">
+        @using (Html.BeginForm("Create", "Home", FormMethod.Post, new {data_toggle = "validator", role = "form", id = "create-form"}))
+        {
+            <div class="form-group row">
+                <label for="customer-name" class="col-xs-2 col-form-label">Khách hàng</label>
+                <div class="col-xs-10">
+                    @Html.TextBoxFor(x => x.InputTrans.CustomerName, null, new {@class = "form-control", @placeholder = "Ten khach hang", id = "customer-name", @required = "required"})
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="customer-telephone" class="col-xs-2 col-form-label">Điện thoại</label>
+                <div class="col-xs-10">
+                    @Html.TextBoxFor(x => x.InputTrans.Phone, null, new {@class = "form-control", id = "customer-telephone", @required = "required", @type = "number"})
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="from-currency" class="col-xs-2 col-form-label">Ngoại tệ</label>
+                <div class="col-xs-10">
+                    @Html.DropDownListFor(x => x.InputTrans.Currency, new SelectList(Enum.GetValues(typeof (Currency))), "Chon ngoai te", new {@class = "form-control required", id = "from-currency", name = "from-currency"})
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-xs-2 col-form-label"> </label>
+                <div class="col-xs-10">
+                    @Html.CheckBoxFor(x => x.InputTrans.IsSell) Bán
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="from-currency-amount" class="col-xs-2 col-form-label">Số tiền</label>
+                <div class="col-xs-10">
+                    <input type="text" class = "form-control currency" laceholder = "So Tien" id = "from-currency-amount" required="required"/>
+                    @*@Html.TextBox("FromAmount", null, new {@class = "form-control currency", @placeholder = "So Tien", id = "from-currency-amount", @required = "required"})*@
+                    @Html.HiddenFor(x => x.InputTrans.FromAmount, new { id = "from-currency-amount-hidden" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="exchange-interest" class="col-xs-2 col-form-label">Tỷ giá</label>
+                <div class="col-xs-10">
+                    @Html.TextBoxFor(x => x.InputTrans.ChangeRate, null, new {@class = "form-control", id = "exchange-interest", @required = "required"})
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="to-currency-amount" class="col-xs-2 col-form-label">Thành tiền</label>
+                <div class="col-xs-10">
+                    <input type="text" class="form-control" placeholder = "0.00" id = "to-currency-amount" disabled/>
+                    @Html.HiddenFor(x => x.InputTrans.ToAmount, new { id = "to-currency-amount-hidden" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="created-datetime" class="col-xs-2 col-form-label">Ngày giờ giao dịch</label>
+                <div class="col-xs-10">
+                    <input type="text" id="created-datetime" disabled class="form-control"/>
+                    @Html.HiddenFor(x => x.InputTrans.InsertedDate, new {id = "created-datetime-hidden"})
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="user-name" class="col-xs-2 col-form-label">Nhân viên</label>
+                <div class="col-xs-10">
+                    @Html.TextBoxFor(x => x.InputTrans.UserName, null, new {@class = "form-control", @placeholder = "Ten nhan vien", id = "user-name", @required = "required"})
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="transaction-description" class="col-xs-2 col-form-label">Ghi chú</label>
+                <div class="col-xs-10">
+                    @Html.TextAreaFor(x => x.InputTrans.Description, new {@class = "form-control", id = "transaction-description", @rows = "3"})
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        }
     </div>
-    <div class="form-group row">
-        <label for="customer-telephone" class="col-xs-2 col-form-label">Dien thoai</label>
-        <div class="col-xs-10">
-            @Html.TextBox("Phone", null, new {@class = "form-control", id = "customer-telephone", @required = "required" })
-        </div>
+    <div class="col-xs-11">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Giao dịch</th>
+                <th>Số tiền</th>
+                <th>Tỷ giá</th>
+                <th>Thành tiền</th>
+                <th>Nhân viên</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.NewestTrans)
+            {
+                <tr>
+                    <td> @(item.IsSell ? "Ban" : "Mua")</td>
+                    <td>@item.Currency @item.FromAmount</td>
+                    <td>@item.ChangeRate</td>
+                    <td>VND @item.ToAmount</td>
+                    <td>@item.UserName</td>
+                </tr>
+            }
+            </tbody>
+        </table>
     </div>
-    <div class="form-group row">
-        <label for="from-currency" class="col-xs-2 col-form-label">Tu Ngoai Te</label>
-        <div class="col-xs-10">
-            @Html.DropDownListFor(x => x.FromCurrency, new SelectList(Enum.GetValues(typeof (Currency))), "Chon ngoai te", new {@class = "form-control", id = "from-currency"})
-
-        </div>
-    </div>
-    <div class="form-group row">
-        <label for="to-currency" class="col-xs-2 col-form-label">Den Ngoai Te</label>
-        <div class="col-xs-10">
-            @Html.DropDownListFor(x => x.ToCurrency, new SelectList(Enum.GetValues(typeof (Currency))), "Chon ngoai te", new {@class = "form-control", id = "to-currency"})
-        </div>
-    </div>
-    <div class="form-group row">
-        <label for="from-currency-amount" class="col-xs-2 col-form-label">So tien</label>
-        <div class="col-xs-10">
-            @Html.TextBox("FromAmount", null, new {@class = "form-control currency", @placeholder = "So Tien", id = "from-currency-amount", @required = "required" })
-        </div>
-    </div>
-    <div class="form-group row">
-        <label for="exchange-interest" class="col-xs-2 col-form-label">Ty gia</label>
-        <div class="col-xs-10">
-            @Html.TextBox("ChangeRate", null, new {@class = "form-control", id = "exchange-interest", @required = "required" })
-        </div>
-    </div>
-    <div class="form-group row">
-        <label for="to-currency-amount" class="col-xs-2 col-form-label">Thanh tien</label>
-        <div class="col-xs-10">
-            @Html.TextBox("ToAmount", null, new {@class = "form-control currency", @placeholder = "0.00", id = "to-currency-amount", @disabled = "disabled"})
-        </div>
-    </div>
-    <div class="form-group row">
-        <label for="created-datetime" class="col-xs-2 col-form-label">Ngay gio giao dich</label>
-        <div class="col-xs-10">
-            @Html.TextBoxFor(x => x.InsertedDate, null, new {@class = "form-control", id = "created-datetime", @disabled = "disabled"})
-        </div>
-    </div>
-    <div class="form-group row">
-        <label for="user-name" class="col-xs-2 col-form-label">Nhan vien</label>
-        <div class="col-xs-10">
-            @Html.TextBoxFor(x => x.UserName, null, new {@class = "form-control", @placeholder = "Ten nhan vien", id = "user-name", @required = "required" })
-        </div>
-    </div>
-    <div class="form-group row">
-        <label for="transaction-description" class="col-xs-2 col-form-label">Ghi chu</label>
-        <div class="col-xs-10">
-            @Html.TextAreaFor(x => x.Description, new {@class = "form-control", id = "transaction-description", @rows = "3"})
-        </div>
-    </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-}
-
+</div>
 

@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Entity;
 
 namespace WebApplication1.Models
 {
@@ -6,9 +10,9 @@ namespace WebApplication1.Models
     {
         public string InsertedDate { get; set; }
 
-        public Currency FromCurrency { get; set; }
+        public Currency Currency { get; set; }
 
-        public Currency ToCurrency { get; set; }
+        public bool IsSell { get; set; }
 
         public string FromAmount { get; set; }
 
@@ -26,11 +30,70 @@ namespace WebApplication1.Models
 
     }
 
+    public class TransactionPageViewModel
+    {
+        public TradeLogViewModel InputTrans { get; set; }
+        public IList<TradeLogViewModel> NewestTrans { get; set; }
+    }
+
+    [Table("tradelog")]
+    public class TradeLog
+    {
+        [Key]
+        public int LogId { get; set; }
+
+        public DateTime InsertedDate { get; set; }
+
+        public Currency Currency { get; set; }
+
+        public bool IsSell { get; set; }
+
+        public double FromAmount { get; set; }
+
+        public double ChangeRate { get; set; }
+
+        public double ToAmount { get; set; }
+
+        [Column(TypeName = "NVARCHAR")]
+        [StringLength(50)]
+        public string CustomerName { get; set; }
+
+        [Column(TypeName = "NVARCHAR")]
+        [StringLength(20)]
+        public string Phone { get; set; }
+
+        [Column(TypeName = "NVARCHAR")]
+        [StringLength(20)]
+        public string UserName { get; set; }
+
+        [Column(TypeName = "NVARCHAR")]
+        [StringLength(150)]
+        public string Description { get; set; }
+
+    }
 
     public enum Currency
     {
-        VND,
         USD,
         HK
+    }
+
+    [DbConfigurationType(typeof(MySql.Data.Entity.MySqlEFConfiguration))]
+    public class TradeLogContext : DbContext
+    {
+        public TradeLogContext() : base("MyDB")
+        {
+            Database.SetInitializer(new TradeLogDbInitializer());
+        }
+
+        public DbSet<TradeLog> TradeLogs { get; set; }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+        }
+    }
+
+    public class TradeLogDbInitializer : CreateDatabaseIfNotExists<TradeLogContext>
+    {
     }
 }
