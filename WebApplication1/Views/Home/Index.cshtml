@@ -18,8 +18,14 @@
             month = month.length > 1 ? month : '0' + month;
             var day = date.getDate().toString();
             day = day.length > 1 ? day : '0' + day;
+            var hour = date.getHours().toString();
+            hour = hour.length > 1 ? hour : '0' + hour;
+            var min = date.getMinutes().toString();
+            min = min.length > 1 ? min : '0' + min;
+            var sec = date.getSeconds().toString();
+            sec = sec.length > 1 ? sec : '0' + sec;
 
-            return day + '/' + month + '/' + year + ' ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+            return day + '/' + month + '/' + year + ' ' + hour + ':' + min + ':' + sec;
         }
 
         var now = new Date();

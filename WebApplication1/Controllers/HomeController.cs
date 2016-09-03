@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity.Core.Metadata.Edm;
+using PagedList;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -44,12 +44,20 @@ namespace WebApplication1.Controllers
             return View(model);
         }
 
-        public ActionResult About()
+        public ActionResult About(DateTime? from, DateTime? to, int? page)
         {
+            var searchCriteria = new SearchViewModel()
+            {
+                From = from,
+                To = to,
+                Page = page
+            };
+
             var model = new SearchPageViewModel()
             {
-                Overview = new List<OverviewViewModel>(),
-                Trans = new List<TradeLogViewModel>()
+                SearchCriteria = searchCriteria,
+                Overview = OnOverview(searchCriteria),
+                Trans = OnSearch(searchCriteria)
             };
 
             return View(model);
@@ -72,7 +80,7 @@ namespace WebApplication1.Controllers
                 CustomerName = vmModel.InputTrans.CustomerName,
                 Description = vmModel.InputTrans.Description,
                 FromAmount = double.Parse(vmModel.InputTrans.FromAmount),
-                InsertedDate = DateTime.Parse(vmModel.InputTrans.InsertedDate),
+                InsertedDate = DateTime.ParseExact(vmModel.InputTrans.InsertedDate, "dd/MM/yyyy HH:mm:ss", new CultureInfo("fr-FR")),
                 IsSell = vmModel.InputTrans.IsSell,
                 Phone = vmModel.InputTrans.Phone,
                 ToAmount = double.Parse(vmModel.InputTrans.ToAmount),
@@ -98,51 +106,26 @@ namespace WebApplication1.Controllers
             return View("About", model);
         }
 
-        private IList<TradeLogViewModel> OnSearch(SearchViewModel search)
+        private IPagedList<TradeLogViewModel> OnSearch(SearchViewModel search)
         {
-            var query = new StringBuilder("select * from tradelog where 1 = 1 ");
+            int pageSize = 50;
+            int pageNumber = search.Page ?? 1;
+
+            var query = ctx.TradeLogs.Select(x => x);
 
             if (search.From.HasValue)
             {
-                query.AppendFormat("and InsertedDate >= '{0}' ", search.From.Value.ToString("yyyy-dd-M"));
+                query = query.Where(x => x.InsertedDate >= search.From.Value);
             }
 
             if (search.To.HasValue)
             {
-                query.AppendFormat("and InsertedDate <= '{0}' ", search.To.Value.ToString("yyyy-dd-M"));
+                query = query.Where(x => x.InsertedDate <= search.To.Value);
             }
 
-            query.Append("order by InsertedDate desc");
+            query = query.OrderBy(x => x.InsertedDate);
 
-            IList<TradeLog> rets = new List<TradeLog>();
-
-            using (var cn = new MySqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["MyDB"].ConnectionString))
-            {
-                cn.Open();
-
-                var cmd = new MySqlCommand(query.ToString(), cn);
-
-                var rd = cmd.ExecuteReader();
-
-                while (rd.Read())
-                {
-                    rets.Add(new TradeLog()
-                    {
-                        InsertedDate = (DateTime)rd["InsertedDate"],
-                        Currency = (Currency)rd["Currency"],
-                        IsSell = (bool)rd["IsSell"],
-                        FromAmount = (double)rd["FromAmount"],
-                        ToAmount = (double)rd["ToAmount"],
-                        ChangeRate = (double)rd["ChangeRate"],
-                        CustomerName = (string)rd["CustomerName"],
-                        Phone = (string)rd["Phone"],
-                        UserName = (string)rd["UserName"],
-                        Description = (string)rd["Description"]
-                    });
-                }
-            }
-
-            return rets.Select(Convert).ToList();
+            return query.Select(Convert).ToPagedList(pageNumber, pageSize);
         }
 
         private IList<OverviewViewModel> OnOverview(SearchViewModel search)
@@ -151,12 +134,12 @@ namespace WebApplication1.Controllers
 
             if (search.From.HasValue)
             {
-                query.AppendFormat("and InsertedDate >= '{0}' ", search.From.Value.ToString("yyyy-dd-M"));
+                query.AppendFormat("and InsertedDate >= '{0}' ", search.From.Value.ToString("yyyy-MM-dd"));
             }
 
             if (search.To.HasValue)
             {
-                query.AppendFormat("and InsertedDate <= '{0}' ", search.To.Value.ToString("yyyy-dd-M"));
+                query.AppendFormat("and InsertedDate <= '{0}' ", search.To.Value.ToString("yyyy-MM-dd"));
             }
 
             query.Append("group by dat1, Currency, IsSell order by dat1 desc");

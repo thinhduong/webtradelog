@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
+using PagedList;
 
 namespace WebApplication1.Models
 {
@@ -40,7 +41,7 @@ namespace WebApplication1.Models
     {
         public SearchViewModel SearchCriteria { get; set; }
 
-        public IList<TradeLogViewModel> Trans { get; set; }
+        public IPagedList<TradeLogViewModel> Trans { get; set; }
 
         public IList<OverviewViewModel> Overview { get; set; }
     }
@@ -50,6 +51,8 @@ namespace WebApplication1.Models
         public DateTime? From { get; set; }
 
         public DateTime? To { get; set; }
+
+        public int? Page { get; set; }
     }
 
     public class OverviewModel

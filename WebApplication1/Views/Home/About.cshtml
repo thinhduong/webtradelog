@@ -4,18 +4,19 @@
 
 @using System.Diagnostics.Eventing.Reader
 @model WebApplication1.Models.SearchPageViewModel
+@using PagedList.Mvc;
 
 <div class="row">
     <div class="portlet-body">
         @using (Html.BeginForm("Search", "Home", FormMethod.Post, new { data_toggle = "validator", role = "form", id = "create-form", @class = "form-inline" }))
         {
-            <div class="form-group">
-                @Html.TextBoxFor(x => x.SearchCriteria.From, null, new { id = "from-date", @type = "date", @class = "form-control", @placeholder = "Tu Ngay" })
-            </div>
-            <div class="form-group">
-                @Html.TextBoxFor(x => x.SearchCriteria.To, null, new { id = "to-date", @type = "date", @class = "form-control", @placeholder = "Den Ngay" })
-            </div>
-            <button type="submit" class="btn btn-default">Tim kiem</button>
+        <div class="form-group">
+            @Html.TextBoxFor(x => x.SearchCriteria.From, null, new { id = "from-date", @type = "date", @class = "form-control", @placeholder = "Tu Ngay" })
+        </div>
+        <div class="form-group">
+            @Html.TextBoxFor(x => x.SearchCriteria.To, null, new { id = "to-date", @type = "date", @class = "form-control", @placeholder = "Den Ngay" })
+        </div>
+        <button type="submit" class="btn btn-default">Tim kiem</button>
         }
     </div>
 </div>
@@ -35,8 +36,8 @@
                     }
                     else
                     {
-                        <table class="table table-hover table-light">
-                            <thead>
+                    <table class="table table-hover table-light">
+                        <thead>
                             <tr class="uppercase">
                                 <th>Ngay</th>
                                 <th></th>
@@ -44,31 +45,32 @@
                                 <th>Ban ra</th>
                                 <th>
                                     <div class="mt-action-img">
-                                        <div class="flgBxPOP" style="background: url(/img/vnd.png) no-repeat scroll 4px 0 transparent"/>
+                                        <div class="flgBxPOP" style="background: url(/img/vnd.png) no-repeat scroll 4px 0 transparent" />
                                     </div> Mua vao
                                 </th>
                                 <th>
                                     <div class="mt-action-img">
-                                        <div class="flgBxPOP" style="background: url(/img/vnd.png) no-repeat scroll 4px 0 transparent"/>
+                                        <div class="flgBxPOP" style="background: url(/img/vnd.png) no-repeat scroll 4px 0 transparent" />
                                     </div> Ban ra
                                 </th>
                             </tr>
-                            </thead>
-                            <tbody>
+                        </thead>
+                        <tbody>
                             @foreach (var item in Model.Overview)
                             {
                                 <tr>
                                     <td>@item.InsertedDate</td>
                                     <td>
-                                        <div class="flgBxPOP flgSprt f@(item.Currency)"></div></td>
+                                        <div class="flgBxPOP flgSprt f@(item.Currency)"></div>
+                                    </td>
                                     <td>@item.BuyAmount</td>
                                     <td>@item.SellAmount</td>
                                     <td>@item.VndBuyAmount</td>
                                     <td>@item.VndSelldAmount</td>
                                 </tr>
                             }
-                            </tbody>
-                        </table>
+                        </tbody>
+                    </table>
                     }
                 </div>
             </div>
@@ -76,5 +78,66 @@
     </div>
 </div>
 <div class="row">
-    
+    <div class="portlet light ">
+        <div class="portlet-title">
+            <div class="caption caption-md">
+                <i class="icon-bar-chart font-dark hide"></i>
+                <span class="caption-subject font-dark bold uppercase">Chi tiet giao dich</span>
+            </div>
+        </div>
+        <div class="portlet-body">
+            <div class="table-scrollable table-scrollable-borderless">
+                @if (Model.Trans == null || Model.Trans.Count == 0)
+                {<p>Hien tai chua co giao dich.</p>
+                }
+                else
+                {
+                    <table class="table table-hover table-light">
+                        <thead>
+                            <tr class="uppercase">
+                                <th>Ngay</th>
+                                <th></th>
+                                <th>So Tien</th>
+                                <th>Ty Gia</th>
+                                <th>
+                                    <div class="mt-action-img">
+                                        <div class="flgBxPOP" style="background: url(/img/vnd.png) no-repeat scroll 4px 0 transparent" />
+                                    </div> T.tien
+                                </th>
+                                <th>
+                                    Khach Hang
+                                </th>
+                                <th>Dien Thoai</th>
+                                <th>Nhan vien</th>
+                                <th>Ghi chu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Trans)
+                            {
+                                <tr>
+                                    <td>@item.InsertedDate</td>
+                                    <td>
+                                        <div class="flgBxPOP flgSprt f@(item.Currency)"></div>
+                                        <span class="glyphicon glyphicon-arrow-@(item.IsSell ? "left"  : "right")"></span>
+                                    </td>
+                                    <td>@item.FromAmount</td>
+                                    <td>@item.ChangeRate</td>
+                                    <td>@item.ToAmount</td>
+                                    <td>@item.CustomerName</td>
+                                    <td>@item.Phone</td>
+                                    <td>@item.UserName</td>
+                                    <td>@(string.IsNullOrEmpty(item.Description) ? string.Empty : item.Description.Length < 30 ? item.Description : item.Description.Substring(0, 30) + "...")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+            Trang @(Model.Trans.PageCount < Model.Trans.PageNumber ? 0 : Model.Trans.PageNumber) of @Model.Trans.PageCount
+
+            @Html.PagedListPager(Model.Trans, page => Url.Action("About", new {from = Model.SearchCriteria.From, to = Model.SearchCriteria.To, page}))
+        </div>
+    </div>
 </div>
