@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -45,7 +46,11 @@ namespace WebApplication1.Controllers
 
         public ActionResult About()
         {
-            var model = new SearchPageViewModel();
+            var model = new SearchPageViewModel()
+            {
+                Overview = new List<OverviewViewModel>(),
+                Trans = new List<TradeLogViewModel>()
+            };
 
             return View(model);
         }
@@ -142,7 +147,7 @@ namespace WebApplication1.Controllers
 
         private IList<OverviewViewModel> OnOverview(SearchViewModel search)
         {
-            var query = new StringBuilder("select Date(InsertedDate) dat1, sum(FromAmount) Amount, Currency, IsSell from tradelog where 1 = 1 ");
+            var query = new StringBuilder("select Date(InsertedDate) dat1, sum(FromAmount) Amount, Currency, IsSell, sum(ToAmount) VndAmount from tradelog where 1 = 1 ");
 
             if (search.From.HasValue)
             {
@@ -156,7 +161,7 @@ namespace WebApplication1.Controllers
 
             query.Append("group by dat1, Currency, IsSell order by dat1 desc");
 
-            IList<OverviewViewModel> rets = new List<OverviewViewModel>();
+            IList<OverviewModel> rets = new List<OverviewModel>();
 
             using (var cn = new MySqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["MyDB"].ConnectionString))
             {
@@ -168,18 +173,26 @@ namespace WebApplication1.Controllers
 
                 while (rd.Read())
                 {
-                    rets.Add(new OverviewViewModel()
+                    rets.Add(new OverviewModel()
                     {
                         InsertedDate = (DateTime)rd["dat1"],
                         Currency = (Currency)rd["Currency"],
                         IsSell = (bool)rd["IsSell"],
                         Amount = (double)rd["Amount"],
+                        VndAmount = (double)rd["VndAmount"]
                     });
                 }
             }
 
-            return rets;
+            return rets.GroupBy(x => new {x.InsertedDate, x.Currency}).Select(x => new OverviewViewModel()
+            {
+                InsertedDate = x.Key.InsertedDate.ToString("d"),
+                Currency = x.Key.Currency.ToString(),
+                SellAmount = x.Where(y => y.IsSell).Sum(y => y.Amount).ToString("N", new CultureInfo("en-US")),
+                BuyAmount = x.Where(y => !y.IsSell).Sum(y => y.Amount).ToString("N", new CultureInfo("en-US")),
+                VndBuyAmount = x.Where(y => !y.IsSell).Sum(y => y.VndAmount).ToString("N", new CultureInfo("en-US")),
+                VndSelldAmount = x.Where(y => y.IsSell).Sum(y => y.VndAmount).ToString("N", new CultureInfo("en-US")),
+            }).OrderBy(x => x.Currency).ToList();
         }
-
     }
 }

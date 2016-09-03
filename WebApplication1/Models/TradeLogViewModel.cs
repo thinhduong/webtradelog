@@ -52,7 +52,7 @@ namespace WebApplication1.Models
         public DateTime? To { get; set; }
     }
 
-    public class OverviewViewModel
+    public class OverviewModel
     {
         public Currency Currency { get; set; }
 
@@ -61,6 +61,23 @@ namespace WebApplication1.Models
         public DateTime InsertedDate { get; set; }
 
         public bool IsSell { get; set; }
+
+        public double VndAmount { get; set; }
+    }
+
+    public class OverviewViewModel
+    {
+        public string Currency { get; set; }
+
+        public string BuyAmount { get; set; }
+
+        public string SellAmount { get; set; }
+
+        public string InsertedDate { get; set; }
+
+        public string VndSelldAmount { get; set; }
+
+        public string VndBuyAmount { get; set; }
     }
 
     [Table("tradelog")]
@@ -102,7 +119,16 @@ namespace WebApplication1.Models
     public enum Currency
     {
         USD,
-        HK
+        EUR,
+        GBP,
+        INR,
+        AUD,
+        CAD,
+        SGD,
+        CHF,
+        MYR,
+        JPY,
+        CNY
     }
 
     [DbConfigurationType(typeof(MySql.Data.Entity.MySqlEFConfiguration))]
