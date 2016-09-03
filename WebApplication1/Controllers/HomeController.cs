@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection.Emit;
+using System.Text;
 using System.Web.Mvc;
+using MySql.Data.MySqlClient;
 using WebApplication1.Models;
 
 namespace WebApplication1.Controllers
@@ -11,20 +13,26 @@ namespace WebApplication1.Controllers
     {
         private readonly TradeLogContext ctx = new TradeLogContext();
 
+        private TradeLogViewModel Convert(TradeLog log)
+        {
+            return new TradeLogViewModel()
+            {
+                ChangeRate = log.ChangeRate.ToString("N", new CultureInfo("en-US")),
+                Currency = log.Currency,
+                CustomerName = log.CustomerName,
+                Description = log.Description,
+                FromAmount = log.FromAmount.ToString("N", new CultureInfo("en-US")),
+                IsSell = log.IsSell,
+                Phone = log.Phone,
+                ToAmount = log.ToAmount.ToString("N", new CultureInfo("en-US")),
+                UserName = log.UserName,
+                InsertedDate = log.InsertedDate.ToString()
+            };
+        }
+
         public ActionResult Index()
         {
-            var newestTransactions = ctx.TradeLogs.OrderByDescending(x => x.InsertedDate).Take(10).ToList().Select(x => new TradeLogViewModel()
-            {
-                ChangeRate = x.ChangeRate.ToString("N", new CultureInfo("en-US")),
-                Currency = x.Currency,
-                CustomerName = x.CustomerName,
-                Description = x.Description,
-                FromAmount = x.FromAmount.ToString("N", new CultureInfo("en-US")),
-                IsSell = x.IsSell,
-                Phone = x.Phone,
-                ToAmount = x.ToAmount.ToString("N", new CultureInfo("en-US")),
-                UserName = x.UserName
-            }).ToList();
+            var newestTransactions = ctx.TradeLogs.OrderByDescending(x => x.InsertedDate).Take(10).ToList().Select(Convert).ToList();
 
             var model = new TransactionPageViewModel()
             {
@@ -37,9 +45,9 @@ namespace WebApplication1.Controllers
 
         public ActionResult About()
         {
-            ViewBag.Message = "Your application description page.";
+            var model = new SearchPageViewModel();
 
-            return View();
+            return View(model);
         }
 
         public ActionResult Contact()
@@ -71,5 +79,107 @@ namespace WebApplication1.Controllers
 
             return RedirectToAction("Index");
         }
+
+        [HttpPost]
+        public ActionResult Search(SearchPageViewModel vmModel)
+        {
+            var model = new SearchPageViewModel()
+            {
+                SearchCriteria = vmModel.SearchCriteria,
+                Trans = OnSearch(vmModel.SearchCriteria),
+                Overview = OnOverview(vmModel.SearchCriteria)
+            };
+
+            return View("About", model);
+        }
+
+        private IList<TradeLogViewModel> OnSearch(SearchViewModel search)
+        {
+            var query = new StringBuilder("select * from tradelog where 1 = 1 ");
+
+            if (search.From.HasValue)
+            {
+                query.AppendFormat("and InsertedDate >= '{0}' ", search.From.Value.ToString("yyyy-dd-M"));
+            }
+
+            if (search.To.HasValue)
+            {
+                query.AppendFormat("and InsertedDate <= '{0}' ", search.To.Value.ToString("yyyy-dd-M"));
+            }
+
+            query.Append("order by InsertedDate desc");
+
+            IList<TradeLog> rets = new List<TradeLog>();
+
+            using (var cn = new MySqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["MyDB"].ConnectionString))
+            {
+                cn.Open();
+
+                var cmd = new MySqlCommand(query.ToString(), cn);
+
+                var rd = cmd.ExecuteReader();
+
+                while (rd.Read())
+                {
+                    rets.Add(new TradeLog()
+                    {
+                        InsertedDate = (DateTime)rd["InsertedDate"],
+                        Currency = (Currency)rd["Currency"],
+                        IsSell = (bool)rd["IsSell"],
+                        FromAmount = (double)rd["FromAmount"],
+                        ToAmount = (double)rd["ToAmount"],
+                        ChangeRate = (double)rd["ChangeRate"],
+                        CustomerName = (string)rd["CustomerName"],
+                        Phone = (string)rd["Phone"],
+                        UserName = (string)rd["UserName"],
+                        Description = (string)rd["Description"]
+                    });
+                }
+            }
+
+            return rets.Select(Convert).ToList();
+        }
+
+        private IList<OverviewViewModel> OnOverview(SearchViewModel search)
+        {
+            var query = new StringBuilder("select Date(InsertedDate) dat1, sum(FromAmount) Amount, Currency, IsSell from tradelog where 1 = 1 ");
+
+            if (search.From.HasValue)
+            {
+                query.AppendFormat("and InsertedDate >= '{0}' ", search.From.Value.ToString("yyyy-dd-M"));
+            }
+
+            if (search.To.HasValue)
+            {
+                query.AppendFormat("and InsertedDate <= '{0}' ", search.To.Value.ToString("yyyy-dd-M"));
+            }
+
+            query.Append("group by dat1, Currency, IsSell order by dat1 desc");
+
+            IList<OverviewViewModel> rets = new List<OverviewViewModel>();
+
+            using (var cn = new MySqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["MyDB"].ConnectionString))
+            {
+                cn.Open();
+
+                var cmd = new MySqlCommand(query.ToString(), cn);
+
+                var rd = cmd.ExecuteReader();
+
+                while (rd.Read())
+                {
+                    rets.Add(new OverviewViewModel()
+                    {
+                        InsertedDate = (DateTime)rd["dat1"],
+                        Currency = (Currency)rd["Currency"],
+                        IsSell = (bool)rd["IsSell"],
+                        Amount = (double)rd["Amount"],
+                    });
+                }
+            }
+
+            return rets;
+        }
+
     }
 }

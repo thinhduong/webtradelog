@@ -36,6 +36,33 @@ namespace WebApplication1.Models
         public IList<TradeLogViewModel> NewestTrans { get; set; }
     }
 
+    public class SearchPageViewModel
+    {
+        public SearchViewModel SearchCriteria { get; set; }
+
+        public IList<TradeLogViewModel> Trans { get; set; }
+
+        public IList<OverviewViewModel> Overview { get; set; }
+    }
+
+    public class SearchViewModel
+    {
+        public DateTime? From { get; set; }
+
+        public DateTime? To { get; set; }
+    }
+
+    public class OverviewViewModel
+    {
+        public Currency Currency { get; set; }
+
+        public double Amount { get; set; }
+
+        public DateTime InsertedDate { get; set; }
+
+        public bool IsSell { get; set; }
+    }
+
     [Table("tradelog")]
     public class TradeLog
     {
