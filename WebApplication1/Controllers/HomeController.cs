@@ -13,21 +13,23 @@ namespace WebApplication1.Controllers
     public class HomeController : Controller
     {
         private readonly TradeLogContext ctx = new TradeLogContext();
+        private readonly CultureInfo _usCultureInfo = new CultureInfo("en-US");
+        private readonly CultureInfo _frCultureInfo = new CultureInfo("fr-FR");
 
         private TradeLogViewModel Convert(TradeLog log)
         {
             return new TradeLogViewModel()
             {
-                ChangeRate = log.ChangeRate.ToString("N", new CultureInfo("en-US")),
+                ChangeRate = log.ChangeRate.ToString("N", _usCultureInfo),
                 Currency = log.Currency,
                 CustomerName = log.CustomerName,
                 Description = log.Description,
-                FromAmount = log.FromAmount.ToString("N", new CultureInfo("en-US")),
+                FromAmount = log.FromAmount.ToString("N", _usCultureInfo),
                 IsSell = log.IsSell,
                 Phone = log.Phone,
-                ToAmount = log.ToAmount.ToString("N", new CultureInfo("en-US")),
+                ToAmount = log.ToAmount.ToString("N", _usCultureInfo),
                 UserName = log.UserName,
-                InsertedDate = log.InsertedDate.ToString()
+                InsertedDate = log.InsertedDate.ToString(_frCultureInfo)
             };
         }
 
@@ -80,7 +82,7 @@ namespace WebApplication1.Controllers
                 CustomerName = vmModel.InputTrans.CustomerName,
                 Description = vmModel.InputTrans.Description,
                 FromAmount = double.Parse(vmModel.InputTrans.FromAmount),
-                InsertedDate = DateTime.ParseExact(vmModel.InputTrans.InsertedDate, "dd/MM/yyyy HH:mm:ss", new CultureInfo("fr-FR")),
+                InsertedDate = DateTime.ParseExact(vmModel.InputTrans.InsertedDate, "dd/MM/yyyy HH:mm:ss", _frCultureInfo),
                 IsSell = vmModel.InputTrans.IsSell,
                 Phone = vmModel.InputTrans.Phone,
                 ToAmount = double.Parse(vmModel.InputTrans.ToAmount),
@@ -169,12 +171,12 @@ namespace WebApplication1.Controllers
 
             return rets.GroupBy(x => new {x.InsertedDate, x.Currency}).Select(x => new OverviewViewModel()
             {
-                InsertedDate = x.Key.InsertedDate.ToString("d"),
+                InsertedDate = x.Key.InsertedDate.ToString(_frCultureInfo),
                 Currency = x.Key.Currency.ToString(),
-                SellAmount = x.Where(y => y.IsSell).Sum(y => y.Amount).ToString("N", new CultureInfo("en-US")),
-                BuyAmount = x.Where(y => !y.IsSell).Sum(y => y.Amount).ToString("N", new CultureInfo("en-US")),
-                VndBuyAmount = x.Where(y => !y.IsSell).Sum(y => y.VndAmount).ToString("N", new CultureInfo("en-US")),
-                VndSelldAmount = x.Where(y => y.IsSell).Sum(y => y.VndAmount).ToString("N", new CultureInfo("en-US")),
+                SellAmount = x.Where(y => y.IsSell).Sum(y => y.Amount).ToString("N", _usCultureInfo),
+                BuyAmount = x.Where(y => !y.IsSell).Sum(y => y.Amount).ToString("N", _usCultureInfo),
+                VndBuyAmount = x.Where(y => !y.IsSell).Sum(y => y.VndAmount).ToString("N", _usCultureInfo),
+                VndSelldAmount = x.Where(y => y.IsSell).Sum(y => y.VndAmount).ToString("N", _usCultureInfo),
             }).OrderBy(x => x.Currency).ToList();
         }
     }
