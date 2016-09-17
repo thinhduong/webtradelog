@@ -172,7 +172,7 @@
                     font: 30
                 },
                 toolTip: {
-                    shared: false
+                    shared: true
                 },
                 axisX:{
                     gridColor: "Silver",
@@ -208,7 +208,7 @@
                     font: 30
                 },
                 toolTip: {
-                    shared: false
+                    shared: true
                 },
                 axisX:{
                     gridColor: "Silver",
@@ -300,7 +300,8 @@
                     <div id="menu1" class="tab-pane fade">
                         <div class="table-scrollable table-scrollable-borderless">
                             @if (Model.Overview == null || Model.Overview.Count == 0)
-                            {<p>Hien tai chua co giao dich.</p>
+                            {
+                                <p>Hien tai chua co giao dich.</p>
                             }
                             else
                             {
@@ -327,7 +328,7 @@
                                         @foreach (var item in Model.Overview)
                                         {
                                             <tr>
-                                                <td>@item.InsertedDate</td>
+                                                <td>@item.InsertedDate.Split(new char[] {' '})[0]</td>
                                                 <td>
                                                     <div class="flgBxPOP flgSprt f@(item.Currency)"></div>
                                                 </td>

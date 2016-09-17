@@ -95,10 +95,13 @@ namespace WebApplication1.Models
 
         public bool IsSell { get; set; }
 
+        [Column(TypeName = "DOUBLE")]
         public double FromAmount { get; set; }
 
+        [Column(TypeName = "DOUBLE")]
         public double ChangeRate { get; set; }
 
+        [Column(TypeName = "DOUBLE")]
         public double ToAmount { get; set; }
 
         [Column(TypeName = "NVARCHAR")]
@@ -151,5 +154,52 @@ namespace WebApplication1.Models
 
     public class TradeLogDbInitializer : CreateDatabaseIfNotExists<TradeLogContext>
     {
+        protected override void Seed(TradeLogContext context)
+        {
+            /*var rnd = new Random();
+
+            var currencies = new List<Currency>() {Currency.USD, Currency.EUR, Currency.JPY};
+            var rates = new List<double> {23000, 30100, 15000};
+
+            var defaultTradeLogs = new List<TradeLog>();
+
+            for(int i=0; i< currencies.Count; i++)
+            {
+                for (int j = 0; j < 5; j++)
+                {
+                    defaultTradeLogs.Add(new TradeLog()
+                    {
+                        Currency = currencies[i],
+                        ChangeRate = rates[i],
+                        Description = string.Empty,
+                        FromAmount = rnd.Next(100, 300),
+                        InsertedDate = DateTime.Now.Subtract(new TimeSpan(j, 0, 0, 0)),
+                        IsSell = true,
+                        CustomerName = string.Format("Customer {0} {1}", i, j),
+                        UserName = string.Format("User {0} {1}", i, j)
+                    });
+
+                    defaultTradeLogs.Add(new TradeLog()
+                    {
+                        Currency = currencies[i],
+                        ChangeRate = rates[i],
+                        Description = string.Empty,
+                        FromAmount = rnd.Next(100, 300),
+                        InsertedDate = DateTime.Now.Subtract(new TimeSpan(j, 0, 0, 0)),
+                        IsSell = false,
+                        CustomerName = string.Format("Customer {0} {1}", i, j),
+                        UserName = string.Format("User {0} {1}", i, j)
+                    });
+                }
+            }
+
+            defaultTradeLogs.ForEach(x =>
+            {
+                x.ToAmount = x.FromAmount*x.ChangeRate;
+                context.TradeLogs.Add(x);
+            });
+            
+            base.Seed(context);*/
+        }
     }
 }

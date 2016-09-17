@@ -16,6 +16,11 @@ namespace WebApplication1.Controllers
         private readonly CultureInfo _usCultureInfo = new CultureInfo("en-US");
         private readonly CultureInfo _frCultureInfo = new CultureInfo("fr-FR");
 
+        public HomeController()
+        {
+            Seed(ctx);
+        }
+
         private TradeLogViewModel Convert(TradeLog log)
         {
             return new TradeLogViewModel()
@@ -31,6 +36,54 @@ namespace WebApplication1.Controllers
                 UserName = log.UserName,
                 InsertedDate = log.InsertedDate.ToString(_frCultureInfo)
             };
+        }
+
+        protected void Seed(TradeLogContext context)
+        {
+          /*  var rnd = new Random();
+
+            var currencies = new List<Currency>() { Currency.USD, Currency.EUR, Currency.JPY };
+            var rates = new List<double> { 23000, 30100, 15000 };
+
+            var defaultTradeLogs = new List<TradeLog>();
+
+            for (int i = 0; i < currencies.Count; i++)
+            {
+                for (int j = 0; j < 5; j++)
+                {
+                    defaultTradeLogs.Add(new TradeLog()
+                    {
+                        Currency = currencies[i],
+                        ChangeRate = rates[i],
+                        Description = string.Empty,
+                        FromAmount = rnd.Next(100, 300),
+                        InsertedDate = DateTime.Now.Subtract(new TimeSpan(j, 0, 0, 0)),
+                        IsSell = true,
+                        CustomerName = string.Format("Customer {0} {1}", i, j),
+                        UserName = string.Format("User {0} {1}", i, j)
+                    });
+
+                    defaultTradeLogs.Add(new TradeLog()
+                    {
+                        Currency = currencies[i],
+                        ChangeRate = rates[i],
+                        Description = string.Empty,
+                        FromAmount = rnd.Next(100, 300),
+                        InsertedDate = DateTime.Now.Subtract(new TimeSpan(j, 0, 0, 0)),
+                        IsSell = false,
+                        CustomerName = string.Format("Customer {0} {1}", i, j),
+                        UserName = string.Format("User {0} {1}", i, j)
+                    });
+                }
+            }
+
+            defaultTradeLogs.ForEach(x =>
+            {
+                x.ToAmount = x.FromAmount * x.ChangeRate;
+                context.TradeLogs.Add(x);
+            });
+
+            context.SaveChanges(); */
         }
 
         public ActionResult Index()
